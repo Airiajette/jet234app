@@ -19,6 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const buttonText = document.getElementById('buttonText');
     const buttonSpinner = document.getElementById('buttonSpinner');
 
+    // --- Fungsi Bantuan ---
+
+    /**
+     * MEMBARU: Acak urutan elemen dalam sebuah array (algoritma Fisher-Yates).
+     * @param {Array} array - Array yang akan diacak.
+     */
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
     // --- Fungsi Utama ---
 
     /**
@@ -27,8 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function getDomains() {
         try {
-            // Ganti URL ini jika config.json berada di lokasi berbeda.
-            // Tambahan `?t=${new Date().getTime()}` adalah untuk mencegah caching.
             const response = await fetch('./domains.json?t=' + new Date().getTime());
             if (!response.ok) throw new Error('Failed to load domain configuration.');
             const config = await response.json();
@@ -41,8 +52,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Memeriksa setiap domain untuk menemukan yang aktif.
-     * @returns {Promise<string|null>} The first working domain URL or null if none are found.
+     * Memeriksa apakah sebuah domain diblokir oleh TrustPositif.
+     * @param {string} domainUrl - URL domain yang akan diperiksa.
+     * @returns {Promise<boolean>} True jika diblokir, false jika tidak.
+     */
+    async function isBlockedByTrustpositif(domainUrl) {
+        const apiKey = '9e98e4bc9a2a9a4f5c2b8f7e6d1a5c3b'; 
+        const apiUrl = 'https://trustpositif.komdigi.go.id/Rest_server/getstatusname';
+        
+        try {
+            const hostname = new URL(domainUrl).hostname;
+            const params = new URLSearchParams({ name: hostname, key: apiKey });
+            
+            const response = await fetch(`${apiUrl}?${params.toString()}`);
+            if (!response.ok) {
+                console.warn(`TrustPositif API error for ${hostname}: ${response.statusText}`);
+                return false; 
+            }
+            
+            const data = await response.json();
+            console.log(`TrustPositif check for ${hostname}: ${data.status}`);
+            return data.status === 'positif';
+        } catch (error) {
+            console.error(`Error checking TrustPositif for ${domainUrl}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Memeriksa setiap domain (dalam urutan acak) untuk menemukan yang aktif dan tidak diblokir.
+     * @returns {Promise<string|null>} The first working and unblocked domain URL or null if none are found.
      */
     async function checkDomainStatus() {
         const domains = await getDomains();
@@ -52,6 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
             launchButton.disabled = true;
             return null;
         }
+
+        // --- PERUBAHAN DI SINI ---
+        // Acak urutan domain setiap kali fungsi ini dipanggil.
+        // Ini membantu mendistribusikan beban dan menghindari pengecekan urutan yang sama terus-menerus.
+        shuffleArray(domains);
+        // --- AKHIR PERUBAHAN ---
 
         domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
         domainName.textContent = 'Checking...';
@@ -63,23 +108,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
                 
                 await fetch(domain, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
-                
                 clearTimeout(timeoutId);
                 
+                console.log(`Domain ${domain} is reachable. Checking TrustPositif...`);
+
+                const blocked = await isBlockedByTrustpositif(domain);
+                
+                if (blocked) {
+                    console.log(`Domain ${domain} is BLOCKED by TrustPositif. Trying next...`);
+                    continue;
+                }
+
                 domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
                 domainName.textContent = new URL(domain).hostname;
-                launchButton.disabled = false; // Aktifkan tombol jika domain ditemukan
+                launchButton.disabled = false;
                 return domain;
+
             } catch (error) {
-                console.log(`Domain ${domain} failed:`, error.message);
-                continue; // Coba domain berikutnya
+                console.log(`Domain ${domain} failed (unreachable):`, error.message);
+                continue;
             }
         }
         
-        // Jika loop selesai tanpa menemukan domain
         domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
-        domainName.textContent = 'Connection Failed';
-        showNotification('Gagal terhubung ke server. Coba lagi nanti.', 'error');
+        domainName.textContent = 'No Working Domain';
+        showNotification('Tidak ada domain yang tersedia dan tidak diblokir. Coba lagi nanti.', 'error');
         launchButton.disabled = true;
         return null;
     }
@@ -131,16 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.open(workingDomain, '_blank');
                 }
                 
-                // Reset tombol setelah mencoba membuka link
                 buttonText.textContent = 'Masuk Applikasi';
                 buttonSpinner.classList.add('hidden');
                 launchButton.disabled = false;
             }, 1500);
         } else {
-            // Jika checkDomainStatus gagal lagi saat diklik
             buttonText.textContent = 'Masuk Applikasi';
             buttonSpinner.classList.add('hidden');
-            // Tombol akan tetap disabled oleh checkDomainStatus
         }
     });
 
