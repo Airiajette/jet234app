@@ -222,30 +222,43 @@
         const domainRotator = new DomainRotator();
         
         // Check domain status on load
-        async function checkDomainStatus() {
+async function checkDomainStatus() {
+    try {
+        domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
+        domainName.textContent = 'Checking...';
+        
+        // Load domains directly from JSON
+        const response = await fetch('./domains.json');
+        const domains = await response.json();
+        
+        // Check each domain for availability
+        for (const domain of domains) {
             try {
-                domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
-                domainName.textContent = 'Checking...';
+                const domainResponse = await fetch(domain, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
                 
-                // In a real implementation, you would check your proxy server
-                const response = await fetch('./server/proxy.php?action=get-working-domain');
-                const data = await response.json();
-                
-                if (data.success) {
-                    domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
-                    domainName.textContent = new URL(data.domain).hostname;
-                    return data.domain;
-                } else {
-                    throw new Error(data.message || 'Failed to get working domain');
-                }
+                // If we get here, the domain is reachable
+                domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
+                domainName.textContent = new URL(domain).hostname;
+                return domain;
             } catch (error) {
-                console.error('Domain check failed:', error);
-                domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
-                domainName.textContent = 'Connection Failed';
-                showNotification('Failed to connect to server. Please try again later.', 'error');
-                return null;
+                // Try next domain
+                continue;
             }
         }
+        
+        throw new Error('No working domains found');
+    } catch (error) {
+        console.error('Domain check failed:', error);
+        domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
+        domainName.textContent = 'Connection Failed';
+        showNotification('Failed to connect to server. Please try again later.', 'error');
+        return null;
+    }
+}
         
         // Show notification
         function showNotification(message, type = 'info') {
