@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JET234 - Telegram Mini App</title>
+    <!-- Favicon from provided site -->
+    <link rel="icon" type="image/webp" href="https://images.linkcdn.cloud/V2/220/favicon/favicon-1912572000.webp">
+    
+    <!-- Tailwind CSS for rapid UI development -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for futuristic typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Telegram Mini App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        /* --- Cyberpunk Theme Customizations --- */
+        :root {
+            --background-dark: #0a0a1a;
+            --primary-glow: #6a0dad;
+            --secondary-glow: #00ffff;
+            --accent-glow: #ff00ff;
+            --text-color: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--background-dark);
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.2) 0%, rgba(0, 255, 255, 0) 25%),
+                radial-gradient(circle at 75% 75%, rgba(106, 13, 173, 0.3) 0%, rgba(106, 13, 173, 0) 30%);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Neon Glow Effect */
+        .neon-glow-primary {
+            text-shadow:
+                0 0 5px var(--primary-glow),
+                0 0 10px var(--primary-glow),
+                0 0 20px var(--primary-glow);
+        }
+        
+        .neon-glow-secondary {
+            text-shadow:
+                0 0 5px var(--secondary-glow),
+                0 0 10px var(--secondary-glow),
+                0 0 20px var(--secondary-glow);
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(20, 20, 40, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Cyber Button */
+        .cyber-button {
+            position: relative;
+            background: linear-gradient(45deg, var(--primary-glow), var(--accent-glow));
+            border: 2px solid var(--secondary-glow);
+            box-shadow: 0 0 10px var(--secondary-glow), inset 0 0 5px var(--secondary-glow);
+            transition: all 0.3s ease;
+            transform: perspective(1px) translateZ(0); /* Promotes to its own layer for better animation performance */
+        }
+        
+        .cyber-button::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            background: inherit;
+            filter: blur(8px);
+            opacity: 0.7;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .cyber-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--secondary-glow), inset 0 0 10px var(--secondary-glow);
+        }
+
+        .cyber-button:hover::before {
+            opacity: 1;
+        }
+
+        /* Glitch Animation */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+
+        .glitch-effect:hover {
+            animation: glitch 0.4s infinite;
+        }
+
+        /* Custom Notification */
+        #notification {
+            transition: all 0.5s ease-in-out;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(0, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--secondary-glow);
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-md mx-auto text-center">
+        <!-- Logo from provided site -->
+        <div class="mb-4 glitch-effect">
+            <img src="https://images.linkcdn.cloud/V2/220/logo/logo-1464296525.gif" alt="JET234 Logo" class="mx-auto w-64 h-auto">
+        </div>
+
+        <h1 class="font-orbitron text-3xl font-bold mb-2 neon-glow-primary">MINI APP INTERFACE</h1>
+
+        <!-- Glassmorphism Card -->
+        <div class="glass-card rounded-lg p-6 mb-8">
+            <!-- Banner from provided site -->
+            <img src="https://images.linkcdn.cloud/V2/00220/banner/id/jet234-hadiah-langsung-emas-68e193327710c.webp" alt="Banner" class="rounded-md mb-6 border-2 border-cyan-500/30">
+
+            <h2 class="font-orbitron text-xl font-bold mb-4">Akses Instan ke Dunia Baru</h2>
+            <p class="text-gray-300 text-sm mb-6">
+                Masuki pengalaman futuristik langsung dari Mini App. Cepat, aman, dan dirancang untuk performa maksimal.
+            </p>
+
+            <!-- Feature List -->
+            <div class="grid grid-cols-3 gap-4 text-xs text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 mb-2 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <span>Instant Play</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 mb-2 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Secure Access</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <svg class="w-8 h-8 mb-2 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>Mobile Optimized</span>
+                </div>
+            </div>
+            
+            <!-- Domain Status Indicator -->
+            <div class="mt-6 p-3 bg-black/30 rounded-md">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Domain Status:</span>
+                    <div class="flex items-center">
+                        <div id="domainStatus" class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                        <span id="domainName" class="text-xs text-cyan-400">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call to Action Button -->
+        <button id="launchButton" class="cyber-button font-orbitron w-full py-4 text-lg font-bold text-white rounded-md uppercase tracking-wider flex items-center justify-center">
+            <span id="buttonText">Masuk Applikasi</span>
+            <div id="buttonSpinner" class="spinner ml-2 hidden"></div>
+        </button>
+    </div>
+
+    <!-- Notification element -->
+    <div id="notification" class="fixed bottom-5 right-5 glass-card p-4 rounded-lg translate-x-[200%] opacity-0">
+        <p class="font-bold text-cyan-400">System Alert:</p>
+        <p id="notificationText" class="text-sm">Initializing Telegram App interface...</p>
+    </div>
+
+    <footer class="absolute bottom-2 text-xs text-gray-600">
+        Copyright &copy; 2025 JET234 - All rights reserved.
+    </footer>
+
+    <!-- Domain Rotator Script -->
+    <script src="./js/domainRotator.js"></script>
+    
+    <script>
+        // Initialize Telegram Web App
+        try {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+        } catch (e) {
+            console.warn("Telegram Web App script not loaded or running outside Telegram.");
+        }
+
+        const launchButton = document.getElementById('launchButton');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        const domainStatus = document.getElementById('domainStatus');
+        const domainName = document.getElementById('domainName');
+        const buttonText = document.getElementById('buttonText');
+        const buttonSpinner = document.getElementById('buttonSpinner');
+        
+        // Initialize Domain Rotator
+        const domainRotator = new DomainRotator();
+        
+        // Check domain status on load
+        async function checkDomainStatus() {
+            try {
+                domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
+                domainName.textContent = 'Checking...';
+                
+                // In a real implementation, you would check your proxy server
+                const response = await fetch('./server/proxy.php?action=get-working-domain');
+                const data = await response.json();
+                
+                if (data.success) {
+                    domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
+                    domainName.textContent = new URL(data.domain).hostname;
+                    return data.domain;
+                } else {
+                    throw new Error(data.message || 'Failed to get working domain');
+                }
+            } catch (error) {
+                console.error('Domain check failed:', error);
+                domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
+                domainName.textContent = 'Connection Failed';
+                showNotification('Failed to connect to server. Please try again later.', 'error');
+                return null;
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            notificationText.textContent = message;
+            
+            // Update notification color based on type
+            if (type === 'error') {
+                notification.querySelector('p').className = 'font-bold text-red-400';
+            } else if (type === 'success') {
+                notification.querySelector('p').className = 'font-bold text-green-400';
+            } else {
+                notification.querySelector('p').className = 'font-bold text-cyan-400';
+            }
+            
+            notification.classList.remove('translate-x-[200%]', 'opacity-0');
+            notification.classList.add('translate-x-0', 'opacity-100');
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('translate-x-0', 'opacity-100');
+                notification.classList.add('translate-x-[200%]', 'opacity-0');
+            }, 3000);
+        }
+        
+        // Handle launch button click
+        launchButton.addEventListener('click', async () => {
+            // Show loading state
+            buttonText.textContent = 'Connecting...';
+            buttonSpinner.classList.remove('hidden');
+            launchButton.disabled = true;
+            
+            try {
+                // Get working domain
+                const workingDomain = await checkDomainStatus();
+                
+                if (workingDomain) {
+                    // In a real implementation, you would redirect to the working domain
+                    // or open it in Telegram's in-app browser
+                    showNotification('Connecting to ' + new URL(workingDomain).hostname + '...', 'success');
+                    
+                    // Simulate connection delay
+                    setTimeout(() => {
+                        // Open the working domain in Telegram's webview
+                        if (Telegram.WebApp) {
+                            Telegram.WebApp.openLink(workingDomain);
+                        } else {
+                            // Fallback for testing outside Telegram
+                            window.open(workingDomain, '_blank');
+                        }
+                        
+                        // Reset button state
+                        buttonText.textContent = 'Masuk Applikasi';
+                        buttonSpinner.classList.add('hidden');
+                        launchButton.disabled = false;
+                    }, 1500);
+                } else {
+                    throw new Error('No working domain available');
+                }
+            } catch (error) {
+                console.error('Launch failed:', error);
+                showNotification('Failed to connect. Please try again.', 'error');
+                
+                // Reset button state
+                buttonText.textContent = 'Masuk Applikasi';
+                buttonSpinner.classList.add('hidden');
+                launchButton.disabled = false;
+            }
+        });
+        
+        // Check domain status on page load
+        checkDomainStatus();
+        
+        // Periodically check domain status (every 30 seconds)
+        setInterval(checkDomainStatus, 30000);
+    </script>
+</body>
+
+</html>

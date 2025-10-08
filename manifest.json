@@ -1,0 +1,16 @@
+{
+  "short_name": "JET234",
+  "name": "JET234 Telegram Mini App",
+  "icons": [
+    {
+      "src": "https://images.linkcdn.cloud/V2/220/favicon/favicon-1912572000.webp",
+      "sizes": "192x192",
+      "type": "image/webp"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6a0dad",
+  "background_color": "#0a0a1a",
+  "description": "Akses instan ke JET234 melalui Telegram Mini App dengan auto domain rotator untuk menghindari pemblokiran."
+}
