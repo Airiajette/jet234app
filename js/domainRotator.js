@@ -2,7 +2,6 @@ class DomainRotator {
     constructor() {
         // Sertakan domains langsung dalam kode untuk menghindari masalah loading file
         this.domains = [
-            'https://jet234.com/register/4D38B453',
             'https://jet234v.com/register/4D38B453',
             'https://jet234v.net/register/4D38B453',
             'https://j234.mom/register/4D38B453',
