@@ -201,139 +201,155 @@
     <!-- Domain Rotator Script -->
     <script src="./js/domainRotator.js"></script>
     
-    <script>
-        // Initialize Telegram Web App
-        try {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-        } catch (e) {
-            console.warn("Telegram Web App script not loaded or running outside Telegram.");
-        }
-
-        const launchButton = document.getElementById('launchButton');
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notificationText');
-        const domainStatus = document.getElementById('domainStatus');
-        const domainName = document.getElementById('domainName');
-        const buttonText = document.getElementById('buttonText');
-        const buttonSpinner = document.getElementById('buttonSpinner');
-        
-        // Initialize Domain Rotator
-        const domainRotator = new DomainRotator();
-        
-        // Check domain status on load
-async function checkDomainStatus() {
+<script>
+    // Initialize Telegram Web App
     try {
-        domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
-        domainName.textContent = 'Checking...';
-        
-        // Load domains directly from JSON
-        const response = await fetch('./domains.json');
-        const domains = await response.json();
-        
-        // Check each domain for availability
-        for (const domain of domains) {
-            try {
-                const domainResponse = await fetch(domain, {
-                    method: 'HEAD',
-                    mode: 'no-cors',
-                    cache: 'no-cache'
-                });
-                
-                // If we get here, the domain is reachable
-                domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
-                domainName.textContent = new URL(domain).hostname;
-                return domain;
-            } catch (error) {
-                // Try next domain
-                continue;
-            }
-        }
-        
-        throw new Error('No working domains found');
-    } catch (error) {
-        console.error('Domain check failed:', error);
-        domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
-        domainName.textContent = 'Connection Failed';
-        showNotification('Failed to connect to server. Please try again later.', 'error');
-        return null;
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+    } catch (e) {
+        console.warn("Telegram Web App script not loaded or running outside Telegram.");
     }
-}
-        
-        // Show notification
-        function showNotification(message, type = 'info') {
-            notificationText.textContent = message;
+
+    const launchButton = document.getElementById('launchButton');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
+    const domainStatus = document.getElementById('domainStatus');
+    const domainName = document.getElementById('domainName');
+    const buttonText = document.getElementById('buttonText');
+    const buttonSpinner = document.getElementById('buttonSpinner');
+    
+    // Define domains directly
+    const domains = [
+        'https://jet234.com',
+        'https://jet234v.com',
+        'https://jet234v.net',
+        'https://j234.mom',
+        'https://jit234.monster',
+        'https://jt234.sbs',
+        'https://jet234t.it.com',
+        'https://jit234.icu',
+        'https://jet234h.sbs',
+        'https://jyt234.xyz',
+        'https://j234.quest',
+        'https://jet234q.it.com'
+    ];
+    
+    // Check domain status on load
+    async function checkDomainStatus() {
+        try {
+            domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
+            domainName.textContent = 'Checking...';
             
-            // Update notification color based on type
-            if (type === 'error') {
-                notification.querySelector('p').className = 'font-bold text-red-400';
-            } else if (type === 'success') {
-                notification.querySelector('p').className = 'font-bold text-green-400';
-            } else {
-                notification.querySelector('p').className = 'font-bold text-cyan-400';
+            // Check each domain for availability
+            for (const domain of domains) {
+                try {
+                    // Use a simple fetch with timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3000);
+                    
+                    const response = await fetch(domain, {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    // If we get here, the domain is reachable
+                    domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
+                    domainName.textContent = new URL(domain).hostname;
+                    return domain;
+                } catch (error) {
+                    // Try next domain
+                    console.log(`Domain ${domain} failed:`, error.message);
+                    continue;
+                }
             }
             
-            notification.classList.remove('translate-x-[200%]', 'opacity-0');
-            notification.classList.add('translate-x-0', 'opacity-100');
-            
-            // Hide notification after 3 seconds
-            setTimeout(() => {
-                notification.classList.remove('translate-x-0', 'opacity-100');
-                notification.classList.add('translate-x-[200%]', 'opacity-0');
-            }, 3000);
+            throw new Error('No working domains found');
+        } catch (error) {
+            console.error('Domain check failed:', error);
+            domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
+            domainName.textContent = 'Connection Failed';
+            showNotification('Failed to connect to server. Please try again later.', 'error');
+            return null;
+        }
+    }
+    
+    // Show notification
+    function showNotification(message, type = 'info') {
+        notificationText.textContent = message;
+        
+        // Update notification color based on type
+        if (type === 'error') {
+            notification.querySelector('p').className = 'font-bold text-red-400';
+        } else if (type === 'success') {
+            notification.querySelector('p').className = 'font-bold text-green-400';
+        } else {
+            notification.querySelector('p').className = 'font-bold text-cyan-400';
         }
         
-        // Handle launch button click
-        launchButton.addEventListener('click', async () => {
-            // Show loading state
-            buttonText.textContent = 'Connecting...';
-            buttonSpinner.classList.remove('hidden');
-            launchButton.disabled = true;
+        notification.classList.remove('translate-x-[200%]', 'opacity-0');
+        notification.classList.add('translate-x-0', 'opacity-100');
+        
+        // Hide notification after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('translate-x-0', 'opacity-100');
+            notification.classList.add('translate-x-[200%]', 'opacity-0');
+        }, 3000);
+    }
+    
+    // Handle launch button click
+    launchButton.addEventListener('click', async () => {
+        // Show loading state
+        buttonText.textContent = 'Connecting...';
+        buttonSpinner.classList.remove('hidden');
+        launchButton.disabled = true;
+        
+        try {
+            // Get working domain
+            const workingDomain = await checkDomainStatus();
             
-            try {
-                // Get working domain
-                const workingDomain = await checkDomainStatus();
+            if (workingDomain) {
+                // In a real implementation, you would redirect to the working domain
+                // or open it in Telegram's in-app browser
+                showNotification('Connecting to ' + new URL(workingDomain).hostname + '...', 'success');
                 
-                if (workingDomain) {
-                    // In a real implementation, you would redirect to the working domain
-                    // or open it in Telegram's in-app browser
-                    showNotification('Connecting to ' + new URL(workingDomain).hostname + '...', 'success');
+                // Simulate connection delay
+                setTimeout(() => {
+                    // Open the working domain in Telegram's webview
+                    if (Telegram.WebApp) {
+                        Telegram.WebApp.openLink(workingDomain);
+                    } else {
+                        // Fallback for testing outside Telegram
+                        window.open(workingDomain, '_blank');
+                    }
                     
-                    // Simulate connection delay
-                    setTimeout(() => {
-                        // Open the working domain in Telegram's webview
-                        if (Telegram.WebApp) {
-                            Telegram.WebApp.openLink(workingDomain);
-                        } else {
-                            // Fallback for testing outside Telegram
-                            window.open(workingDomain, '_blank');
-                        }
-                        
-                        // Reset button state
-                        buttonText.textContent = 'Masuk Applikasi';
-                        buttonSpinner.classList.add('hidden');
-                        launchButton.disabled = false;
-                    }, 1500);
-                } else {
-                    throw new Error('No working domain available');
-                }
-            } catch (error) {
-                console.error('Launch failed:', error);
-                showNotification('Failed to connect. Please try again.', 'error');
-                
-                // Reset button state
-                buttonText.textContent = 'Masuk Applikasi';
-                buttonSpinner.classList.add('hidden');
-                launchButton.disabled = false;
+                    // Reset button state
+                    buttonText.textContent = 'Masuk Applikasi';
+                    buttonSpinner.classList.add('hidden');
+                    launchButton.disabled = false;
+                }, 1500);
+            } else {
+                throw new Error('No working domain available');
             }
-        });
-        
-        // Check domain status on page load
-        checkDomainStatus();
-        
-        // Periodically check domain status (every 30 seconds)
-        setInterval(checkDomainStatus, 30000);
-    </script>
+        } catch (error) {
+            console.error('Launch failed:', error);
+            showNotification('Failed to connect. Please try again.', 'error');
+            
+            // Reset button state
+            buttonText.textContent = 'Masuk Applikasi';
+            buttonSpinner.classList.add('hidden');
+            launchButton.disabled = false;
+        }
+    });
+    
+    // Check domain status on page load
+    checkDomainStatus();
+    
+    // Periodically check domain status (every 30 seconds)
+    setInterval(checkDomainStatus, 30000);
+</script>
 </body>
 
 </html>

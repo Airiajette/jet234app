@@ -1,18 +1,22 @@
 // Include the DomainRotator class directly instead of loading from external file
 class DomainRotator {
     constructor() {
-        this.domains = [];
-        this.loadDomains();
-    }
-
-    async loadDomains() {
-        try {
-            const response = await fetch('./domains.json');
-            this.domains = await response.json();
-            console.log('Loaded domains:', this.domains);
-        } catch (error) {
-            console.error('Failed to load domains:', error);
-        }
+        // Sertakan domains langsung dalam kode
+        this.domains = [
+            'https://jet234.com',
+            'https://jet234v.com',
+            'https://jet234v.net',
+            'https://j234.mom',
+            'https://jit234.monster',
+            'https://jt234.sbs',
+            'https://jet234t.it.com',
+            'https://jit234.icu',
+            'https://jet234h.sbs',
+            'https://jyt234.xyz',
+            'https://j234.quest',
+            'https://jet234q.it.com'
+        ];
+        console.log('Loaded domains:', this.domains);
     }
 
     async getWorkingDomain() {
