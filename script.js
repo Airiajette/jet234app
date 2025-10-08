@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Seleksi Elemen DOM (Termasuk yang baru) ---
+    const loadingScreen = document.getElementById('loadingScreen');
+    const appContainer = document.getElementById('appContainer');
+    const launchButton = document.getElementById('launchButton');
+    const notification = document.getElementById('notification');
+    const notificationTitle = document.getElementById('notificationTitle');
+    const notificationText = document.getElementById('notificationText');
+    const domainStatus = document.getElementById('domainStatus');
+    const domainName = document.getElementById('domainName');
+    const buttonText = document.getElementById('buttonText');
+    const buttonSpinner = document.getElementById('buttonSpinner');
+
     // --- Inisialisasi Aplikasi ---
     try {
         if (typeof Telegram !== 'undefined') {
@@ -9,22 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Telegram Web App script not loaded or running outside Telegram.");
     }
 
-    // --- Seleksi Elemen DOM ---
-    const launchButton = document.getElementById('launchButton');
-    const notification = document.getElementById('notification');
-    const notificationTitle = document.getElementById('notificationTitle');
-    const notificationText = document.getElementById('notificationText');
-    const domainStatus = document.getElementById('domainStatus');
-    const domainName = document.getElementById('domainName');
-    const buttonText = document.getElementById('buttonText');
-    const buttonSpinner = document.getElementById('buttonSpinner');
-
     // --- Fungsi Bantuan ---
-
-    /**
-     * Acak urutan elemen dalam sebuah array (algoritma Fisher-Yates).
-     * @param {Array} array - Array yang akan diacak.
-     */
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -33,11 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Fungsi Utama ---
-
-    /**
-     * Mengambil daftar domain dari file konfigurasi eksternal.
-     * @returns {Promise<string[]|null>} Array of domains or null on failure.
-     */
     async function getDomains() {
         try {
             const response = await fetch('./domains.json?t=' + new Date().getTime());
@@ -55,58 +47,75 @@ document.addEventListener('DOMContentLoaded', () => {
      * Memeriksa setiap domain (dalam urutan acak) untuk menemukan yang aktif.
      * @returns {Promise<string|null>} The first active domain URL or null if none are found.
      */
-    async function checkDomainStatus() {
+    async function checkDomainStatus(isInitialCheck = true) {
         const domains = await getDomains();
         if (!domains) {
+            if (isInitialCheck) showApp(); // Tetap tampilkan app meski error
             domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
             domainName.textContent = 'Config Error';
             launchButton.disabled = true;
             return null;
         }
 
-        // Acak urutan domain untuk mendistribusikan beban
         shuffleArray(domains);
 
-        domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
-        domainName.textContent = 'Mencari...';
+        // Hanya tampilkan status "Mencari..." jika bukan pengecekan berkala
+        if (isInitialCheck) {
+            domainName.textContent = 'Mencari...';
+        }
         launchButton.disabled = true;
 
         for (const domain of domains) {
             try {
-                // Cek apakah domain bisa dijangkau
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000); // Timeout 3 detik
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
                 
                 await fetch(domain, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
                 clearTimeout(timeoutId);
                 
-                // Jika berhasil, domain ini adalah yang kita cari
                 console.log(`Domain aktif ditemukan: ${domain}`);
                 domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
-                domainName.textContent = 'Aktif'; // Teks status diubah menjadi generik
+                domainName.textContent = 'Aktif';
                 launchButton.disabled = false;
+
+                // Jika ini adalah pengecekan awal, tampilkan aplikasi
+                if (isInitialCheck) {
+                    showApp();
+                }
+                
                 return domain;
 
             } catch (error) {
-                // Jika gagal, lanjut ke domain berikutnya
                 console.log(`Domain ${domain} tidak dapat dijangkau.`);
                 continue;
             }
         }
         
-        // Jika loop selesai tanpa menemukan domain yang aktif
+        // Jika loop selesai tanpa menemukan domain
+        if (isInitialCheck) {
+            showApp(); // Tetap tampilkan app agar user bisa coba lagi
+            showNotification('Tidak dapat menemukan server yang aktif. Coba lagi nanti.', 'error');
+        }
         domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
-        domainName.textContent = 'Gagal Terhubung'; // Teks status diubah menjadi generik
-        showNotification('Tidak dapat menemukan server yang aktif. Coba lagi nanti.', 'error');
+        domainName.textContent = 'Gagal Terhubung';
         launchButton.disabled = true;
         return null;
     }
 
     /**
-     * Menampilkan notifikasi popup.
-     * @param {string} message - Pesan yang akan ditampilkan.
-     * @param {'info'|'success'|'error'} type - Jenis notifikasi.
+     * Fungsi untuk menyembunyikan loading dan menampilkan aplikasi.
      */
+    function showApp() {
+        // Mulai transisi fade-out
+        loadingScreen.style.opacity = '0';
+        
+        // Tunggu transisi selesai, lalu sembunyikan loading dan tampilkan app
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            appContainer.classList.remove('hidden');
+        }, 500); // Durasi harus sama dengan CSS transition-duration
+    }
+
     function showNotification(message, type = 'info') {
         notificationText.textContent = message;
         
@@ -127,13 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-
     launchButton.addEventListener('click', async () => {
         buttonText.textContent = 'Connecting...';
         buttonSpinner.classList.remove('hidden');
         launchButton.disabled = true;
         
-        const workingDomain = await checkDomainStatus();
+        // Panggil checkDomainStatus untuk pengecekan ulang saat tombol diklik
+        const workingDomain = await checkDomainStatus(false); // false = bukan pengecekan awal
         
         if (workingDomain) {
             showNotification('Menyambungkan ke server...', 'success');
@@ -149,20 +158,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.open(workingDomain, '_blank');
                 }
                 
-                // Reset tombol setelah mencoba membuka link
                 buttonText.textContent = 'Masuk Applikasi';
                 buttonSpinner.classList.add('hidden');
                 launchButton.disabled = false;
             }, 1500);
         } else {
-            // Jika checkDomainStatus gagal lagi saat diklik
             buttonText.textContent = 'Masuk Applikasi';
             buttonSpinner.classList.add('hidden');
-            // Tombol akan tetap disabled oleh checkDomainStatus
         }
     });
 
     // --- Inisialisasi & Pengecekan Berkala ---
-    checkDomainStatus();
-    setInterval(checkDomainStatus, 30000);
+    // Jalankan pengecekan awal sekali saja
+    checkDomainStatus(true); // true = ini adalah pengecekan awal
+    
+    // Jalankan pengecekan berkala setiap 30 detik, tanpa memicu ulang layar loading
+    setInterval(() => checkDomainStatus(false), 30000);
 });
