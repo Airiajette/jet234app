@@ -218,21 +218,8 @@
     const buttonText = document.getElementById('buttonText');
     const buttonSpinner = document.getElementById('buttonSpinner');
     
-    // Define domains directly
-    const domains = [
-        'https://jet234.com',
-        'https://jet234v.com',
-        'https://jet234v.net',
-        'https://j234.mom',
-        'https://jit234.monster',
-        'https://jt234.sbs',
-        'https://jet234t.it.com',
-        'https://jit234.icu',
-        'https://jet234h.sbs',
-        'https://jyt234.xyz',
-        'https://j234.quest',
-        'https://jet234q.it.com'
-    ];
+    // Initialize Domain Rotator
+    const domainRotator = new DomainRotator();
     
     // Check domain status on load
     async function checkDomainStatus() {
@@ -240,33 +227,16 @@
             domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
             domainName.textContent = 'Checking...';
             
-            // Check each domain for availability
-            for (const domain of domains) {
-                try {
-                    // Use a simple fetch with timeout
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 3000);
-                    
-                    const response = await fetch(domain, {
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    // If we get here, the domain is reachable
-                    domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
-                    domainName.textContent = new URL(domain).hostname;
-                    return domain;
-                } catch (error) {
-                    // Try next domain
-                    console.log(`Domain ${domain} failed:`, error.message);
-                    continue;
-                }
-            }
+            // Get working domain from DomainRotator
+            const workingDomain = await domainRotator.getWorkingDomain();
             
-            throw new Error('No working domains found');
+            if (workingDomain) {
+                domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
+                domainName.textContent = new URL(workingDomain).hostname;
+                return workingDomain;
+            } else {
+                throw new Error('No working domain available');
+            }
         } catch (error) {
             console.error('Domain check failed:', error);
             domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
