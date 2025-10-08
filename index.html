@@ -68,17 +68,26 @@
         }
         .contact-button:hover { background: rgba(20, 20, 40, 0.9); border-color: rgba(0, 255, 255, 0.6); transform: translateY(-2px); }
         .contact-button:focus { outline: 2px solid var(--secondary-glow); outline-offset: 2px; }
+
+        /* --- PERUBAHAN: Gaya untuk GIF Loading yang Baru --- */
+        .loading-gif {
+            max-width: 90vw; /* Maksimal lebar 90% dari layar */
+            max-height: 50vh; /* Maksimal tinggi 50% dari layar */
+            width: auto;      /* Lebar menyesuaikan aspek rasio */
+            height: auto;     /* Tinggi menyesuaikan aspek rasio */
+            object-fit: contain; /* Memastikan seluruh gambar terlihat tanpa terpotong */
+        }
     </style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden">
 
     <!-- ================================================= -->
-    <!-- ========= TAMBAHAN: LAYAR LOADING AWAL ========= -->
+    <!-- ========= LAYAR LOADING DENGAN GIF BARU ========= -->
     <!-- ================================================= -->
     <div id="loadingScreen" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center transition-opacity duration-500 ease-in-out">
-        <!-- PASTIKAN ANDA MEMILIKI FILE loading.gif DI FOLDER ./images/ -->
-        <img src="./images/loading.gif" alt="Loading..." class="w-24 h-24">
+        <!-- PERUBAHAN: Sumber gambar dan class CSS -->
+        <img src="./images/loading.gif" alt="Loading..." class="loading-gif">
     </div>
 
     <!-- ================================================= -->
