@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fungsi Bantuan ---
 
     /**
-     * MEMBARU: Acak urutan elemen dalam sebuah array (algoritma Fisher-Yates).
+     * Acak urutan elemen dalam sebuah array (algoritma Fisher-Yates).
      * @param {Array} array - Array yang akan diacak.
      */
     function shuffleArray(array) {
@@ -52,36 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Memeriksa apakah sebuah domain diblokir oleh TrustPositif.
-     * @param {string} domainUrl - URL domain yang akan diperiksa.
-     * @returns {Promise<boolean>} True jika diblokir, false jika tidak.
-     */
-    async function isBlockedByTrustpositif(domainUrl) {
-        const apiKey = '9e98e4bc9a2a9a4f5c2b8f7e6d1a5c3b'; 
-        const apiUrl = 'https://trustpositif.komdigi.go.id/Rest_server/getstatusname';
-        
-        try {
-            const hostname = new URL(domainUrl).hostname;
-            const params = new URLSearchParams({ name: hostname, key: apiKey });
-            
-            const response = await fetch(`${apiUrl}?${params.toString()}`);
-            if (!response.ok) {
-                console.warn(`TrustPositif API error for ${hostname}: ${response.statusText}`);
-                return false; 
-            }
-            
-            const data = await response.json();
-            console.log(`TrustPositif check for ${hostname}: ${data.status}`);
-            return data.status === 'positif';
-        } catch (error) {
-            console.error(`Error checking TrustPositif for ${domainUrl}:`, error);
-            return false;
-        }
-    }
-
-    /**
-     * Memeriksa setiap domain (dalam urutan acak) untuk menemukan yang aktif dan tidak diblokir.
-     * @returns {Promise<string|null>} The first working and unblocked domain URL or null if none are found.
+     * Memeriksa setiap domain (dalam urutan acak) untuk menemukan yang aktif.
+     * @returns {Promise<string|null>} The first active domain URL or null if none are found.
      */
     async function checkDomainStatus() {
         const domains = await getDomains();
@@ -92,47 +64,40 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
 
-        // --- PERUBAHAN DI SINI ---
-        // Acak urutan domain setiap kali fungsi ini dipanggil.
-        // Ini membantu mendistribusikan beban dan menghindari pengecekan urutan yang sama terus-menerus.
+        // Acak urutan domain untuk mendistribusikan beban
         shuffleArray(domains);
-        // --- AKHIR PERUBAHAN ---
 
         domainStatus.className = 'w-2 h-2 bg-yellow-500 rounded-full mr-2';
-        domainName.textContent = 'Checking...';
+        domainName.textContent = 'Mencari...';
         launchButton.disabled = true;
 
         for (const domain of domains) {
             try {
+                // Cek apakah domain bisa dijangkau
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // Timeout 3 detik
                 
                 await fetch(domain, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
                 clearTimeout(timeoutId);
                 
-                console.log(`Domain ${domain} is reachable. Checking TrustPositif...`);
-
-                const blocked = await isBlockedByTrustpositif(domain);
-                
-                if (blocked) {
-                    console.log(`Domain ${domain} is BLOCKED by TrustPositif. Trying next...`);
-                    continue;
-                }
-
+                // Jika berhasil, domain ini adalah yang kita cari
+                console.log(`Domain aktif ditemukan: ${domain}`);
                 domainStatus.className = 'w-2 h-2 bg-green-500 rounded-full mr-2';
-                domainName.textContent = new URL(domain).hostname;
+                domainName.textContent = 'Aktif'; // Teks status diubah menjadi generik
                 launchButton.disabled = false;
                 return domain;
 
             } catch (error) {
-                console.log(`Domain ${domain} failed (unreachable):`, error.message);
+                // Jika gagal, lanjut ke domain berikutnya
+                console.log(`Domain ${domain} tidak dapat dijangkau.`);
                 continue;
             }
         }
         
+        // Jika loop selesai tanpa menemukan domain yang aktif
         domainStatus.className = 'w-2 h-2 bg-red-500 rounded-full mr-2';
-        domainName.textContent = 'No Working Domain';
-        showNotification('Tidak ada domain yang tersedia dan tidak diblokir. Coba lagi nanti.', 'error');
+        domainName.textContent = 'Gagal Terhubung'; // Teks status diubah menjadi generik
+        showNotification('Tidak dapat menemukan server yang aktif. Coba lagi nanti.', 'error');
         launchButton.disabled = true;
         return null;
     }
@@ -171,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const workingDomain = await checkDomainStatus();
         
         if (workingDomain) {
-            showNotification('Menyambungkan ke ' + new URL(workingDomain).hostname + '...', 'success');
+            showNotification('Menyambungkan ke server...', 'success');
             setTimeout(() => {
                 try {
                     if (typeof Telegram !== 'undefined' && Telegram.WebApp.openLink) {
@@ -184,13 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.open(workingDomain, '_blank');
                 }
                 
+                // Reset tombol setelah mencoba membuka link
                 buttonText.textContent = 'Masuk Applikasi';
                 buttonSpinner.classList.add('hidden');
                 launchButton.disabled = false;
             }, 1500);
         } else {
+            // Jika checkDomainStatus gagal lagi saat diklik
             buttonText.textContent = 'Masuk Applikasi';
             buttonSpinner.classList.add('hidden');
+            // Tombol akan tetap disabled oleh checkDomainStatus
         }
     });
 
